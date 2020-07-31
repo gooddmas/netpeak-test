@@ -69,6 +69,13 @@ def netpeak_test_task():
     want_to_work_button.click()
     print('3. Перейти на страницу заполнения анкеты, нажав кнопку - "Я хочу работать в Netpeak" [SUCCESS]')
 
+    upload_resume_button = driver.find_element_by_css_selector('[name="up_file"]')
+    upload_resume_button.send_keys(os.getcwd() + "/picture.png")
+    sleep(2)
+    assert TEST_DATA['resume error message'] in driver.find_element_by_css_selector('#up_file_name > label').text
+    print('4. Загрузить файл с недопустимым форматом в блоке "Резюме", например png, и проверить что на странице '
+          'появилось сообщение, о том что формат изображения неверный [SUCCESS]')  # неверный формат файла
+
     personal_data_generator()
 
     year_dropdown = Select(driver.find_element_by_css_selector('[data-error-name="Birth year"]'))
@@ -78,13 +85,6 @@ def netpeak_test_task():
     day_dropdown = Select(driver.find_element_by_css_selector('[data-error-name="Birth day"]'))
     day_dropdown.select_by_value(TEST_DATA['day'])
     print('5. Заполнить случайными данными блок "3. Личные данные" [SUCCESS]')
-
-    upload_resume_button = driver.find_element_by_css_selector('[name="up_file"]')
-    upload_resume_button.send_keys(os.getcwd() + "/picture.png")
-    sleep(2)
-    assert TEST_DATA['resume error message'] in driver.find_element_by_css_selector('#up_file_name > label').text
-    print('4. Загрузить файл с недопустимым форматом в блоке "Резюме", например png, и проверить что на странице '
-          'появилось сообщение, о том что формат изображения неверный [SUCCESS]')  # неверный формат файла
 
     driver.find_element_by_css_selector('#submit > span').click()
     print('6. Нажать на кнопку отправить резюме [SUCCESS]')  # кнопка [Отправить анкету]
