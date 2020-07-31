@@ -5,6 +5,8 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.color import Color
 from selenium.webdriver.common.action_chains import ActionChains
 from time import sleep
+from faker import Faker
+from random import randint
 
 TEST_DATA = {
     'name': 'Dmitriy',
@@ -19,21 +21,45 @@ TEST_DATA = {
     'hex color': '#ff0000'
 }
 
+driver = webdriver.Chrome()
+actions = ActionChains(driver)
+fake = Faker()
+main_page_url = 'https://netpeak.ua/'
+
 
 def find_element_by_text(driver, text, tag_name='div'):
     return driver.find_element_by_xpath(f'//{tag_name}[contains(., "{text}")]')
 
 
+def personal_data_generator():
+    full_name = fake.name()
+    name_and_surname = full_name.split()
+    name = name_and_surname[0]
+    surname = name_and_surname[1]
+    email = ''.join(name_and_surname) + '@gmail.com'
+    phone = '+380' + str(randint(630000000, 950000000))
+
+    name_field = driver.find_element_by_css_selector('#inputName')
+    name_field.send_keys(name)
+
+    surname_field = driver.find_element_by_css_selector('#inputLastname')
+    surname_field.send_keys(surname)
+
+    email_field = driver.find_element_by_css_selector('#inputEmail')
+    email_field.send_keys(email)
+
+    phone_field = driver.find_element_by_css_selector('#inputPhone')
+    phone_field.send_keys(phone)
+
+
 def netpeak_test_task():
     print('\nТестовое задание для Netpeak на позицию Intern Automation QA [Dmitriy Lebed]\n')
-    driver = webdriver.Chrome()
-    actions = ActionChains(driver)
-    main_page_url = 'https://netpeak.ua/'
-    driver.get(main_page_url)
-    print('1. Перейти по ссылке на главную страницу сайта Netpeak (https://netpeak.ua/) [SUCCESS]')
 
     driver.maximize_window()
     driver.implicitly_wait(5)
+
+    driver.get(main_page_url)
+    print('1. Перейти по ссылке на главную страницу сайта Netpeak (https://netpeak.ua/) [SUCCESS]')
 
     career_link = find_element_by_text(driver, "Карьера", "a")
     career_link.click()
@@ -43,31 +69,22 @@ def netpeak_test_task():
     want_to_work_button.click()
     print('3. Перейти на страницу заполнения анкеты, нажав кнопку - "Я хочу работать в Netpeak" [SUCCESS]')
 
-    upload_resume_button = driver.find_element_by_css_selector('[name="up_file"]').send_keys(os.getcwd() + "/picture.png")
+    personal_data_generator()
+
+    year_dropdown = Select(driver.find_element_by_css_selector('[data-error-name="Birth year"]'))
+    year_dropdown.select_by_value(TEST_DATA['year'])
+    month_dropdown = Select(driver.find_element_by_css_selector('[data-error-name="Birth month"]'))
+    month_dropdown.select_by_value(TEST_DATA['month'])
+    day_dropdown = Select(driver.find_element_by_css_selector('[data-error-name="Birth day"]'))
+    day_dropdown.select_by_value(TEST_DATA['day'])
+    print('5. Заполнить случайными данными блок "3. Личные данные" [SUCCESS]')
+
+    upload_resume_button = driver.find_element_by_css_selector('[name="up_file"]')
+    upload_resume_button.send_keys(os.getcwd() + "/picture.png")
     sleep(2)
     assert TEST_DATA['resume error message'] in driver.find_element_by_css_selector('#up_file_name > label').text
     print('4. Загрузить файл с недопустимым форматом в блоке "Резюме", например png, и проверить что на странице '
           'появилось сообщение, о том что формат изображения неверный [SUCCESS]')  # неверный формат файла
-
-    name_field = driver.find_element_by_css_selector('#inputName')
-    name_field.send_keys(TEST_DATA['name'])
-
-    surname_field = driver.find_element_by_css_selector('#inputLastname')
-    surname_field.send_keys(TEST_DATA['surname'])
-
-    email_field = driver.find_element_by_css_selector('#inputEmail')
-    email_field.send_keys(TEST_DATA['email'])
-
-    phone_field = driver.find_element_by_css_selector('#inputPhone')
-    phone_field.send_keys(TEST_DATA['phone'])
-
-    year_dropdown = Select(driver.find_element_by_css_selector('[data-error-name="Birth year"]')).select_by_value(
-        TEST_DATA['year'])
-    month_dropdown = Select(driver.find_element_by_css_selector('[data-error-name="Birth month"]')).select_by_value(
-        TEST_DATA['month'])
-    day_dropdown = Select(driver.find_element_by_css_selector('[data-error-name="Birth day"]')).select_by_value(
-        TEST_DATA['day'])
-    print('5. Заполнить случайными данными блок "3. Личные данные" [SUCCESS]')
 
     driver.find_element_by_css_selector('#submit > span').click()
     print('6. Нажать на кнопку отправить резюме [SUCCESS]')  # кнопка [Отправить анкету]
@@ -82,7 +99,7 @@ def netpeak_test_task():
           'подсветилось красным цветом [SUCCESS]')
 
     driver.find_element_by_css_selector('[alt="Netpeak"]').click()
-    sleep(2)
+    sleep(3)
     if driver.current_url == main_page_url:
         print('8. Нажать на логотип для перехода на главную страницу и убедиться что открылась нужная страница [SUCCESS]')
 
